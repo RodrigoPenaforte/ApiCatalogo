@@ -1,0 +1,13 @@
+# Visual Studio
+*.user
+*.suo
+*.cache
+.vscode/
+
+# Pastas de build
+bin/
+obj/
+
+# Arquivos de configuração local
+*.log
+*.env

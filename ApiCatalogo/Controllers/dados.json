@@ -1,0 +1,17 @@
+{
+  "categoriaId": 1,
+  "produtoId": 4,
+  "nome": "PlayStation 5",
+  "descricao": "Console de última geração com gráficos incríveis e desempenho excepcional",
+  "preco": 4999.99,
+  "imagemUrl": "https://mirandacomputacao.jetassets.com.br/produto/multifotos/46927-1_46927.jpg",
+  "estoque": 20,
+  "dataCadastro": "2024-12-22T15:35:00",
+  "categoria": null,
+
+
+
+  "categoriaId": 4,
+  "nome": "Bebidas",
+  "imagemUrl": "https://http2.mlstatic.com/D_NQ_NP_805913-MLU77401612576_072024-O.webp"
+}
