@@ -53,7 +53,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [HttpGet("id", Name = "ObterCategoria")]
+        [HttpGet("{id:int:min(1)}", Name = "ObterCategoria")]
 
         public async Task<ActionResult<Categoria>> BuscarCategoriaPorId(int id)
         {

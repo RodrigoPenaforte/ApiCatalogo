@@ -1,4 +1,5 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -13,6 +14,7 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 string SqlServerConnection = builder.Configuration.GetConnectionString("Default");
 
@@ -36,6 +38,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "weather api");
         options.RoutePrefix = "swagger";
     });
+    app.ConfigureExceptionHandler();
 }
 
 app.UseHttpsRedirection();
