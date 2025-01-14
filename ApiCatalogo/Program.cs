@@ -1,5 +1,6 @@
 using ApiCatalogo.Context;
 using ApiCatalogo.Extensions;
+using ApiCatalogo.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -19,6 +20,12 @@ builder.Services.AddSwaggerGen();
 string SqlServerConnection = builder.Configuration.GetConnectionString("Default");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(SqlServerConnection));
+
+
+builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration
+{
+    LogLevel = LogLevel.Information
+}));
 
 var app = builder.Build();
 

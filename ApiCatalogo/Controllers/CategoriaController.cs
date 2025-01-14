@@ -16,10 +16,12 @@ namespace ApiCatalogo.Controllers
     public class CategoriaController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<CategoriaController> _logger;
 
-        public CategoriaController(AppDbContext context)
+        public CategoriaController(AppDbContext context, ILogger<CategoriaController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -41,7 +43,7 @@ namespace ApiCatalogo.Controllers
         [HttpGet("CategoriaProduto")]
 
         public async Task<ActionResult<IEnumerable<Categoria>>> BuscarCategoriaPorPrduto()
-        {
+        {   
             var fitlrarCategoriaPorProduto = _context.Categorias.Include(p => p.Produtos).Where( c => c.CategoriaId <=5).ToListAsync();
 
             if (fitlrarCategoriaPorProduto is null)
