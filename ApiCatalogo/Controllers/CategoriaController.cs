@@ -33,6 +33,7 @@ namespace ApiCatalogo.Controllers
 
             if (fitlrarCategoria is null)
             {
+                _logger.LogWarning($"Não foi possível encontrar o objeto categoria");
                 return NotFound("Não foi encontrado nenhuma categoria");
             }
 
@@ -43,11 +44,12 @@ namespace ApiCatalogo.Controllers
         [HttpGet("CategoriaProduto")]
 
         public async Task<ActionResult<IEnumerable<Categoria>>> BuscarCategoriaPorPrduto()
-        {   
-            var fitlrarCategoriaPorProduto = _context.Categorias.Include(p => p.Produtos).Where( c => c.CategoriaId <=5).ToListAsync();
+        {
+            var fitlrarCategoriaPorProduto = _context.Categorias.Include(p => p.Produtos).Where(c => c.CategoriaId <= 5).ToListAsync();
 
             if (fitlrarCategoriaPorProduto is null)
-            {
+            {   
+                _logger.LogWarning($"Não foi encontrado nenhuma categoria para esse objeto");
                 return NotFound("Não foi encontrado nenhuma categoria");
             }
 
@@ -63,7 +65,7 @@ namespace ApiCatalogo.Controllers
             var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
 
             if (categoria is null)
-            {
+            {   _logger.LogWarning($"Categoria não existe com esse id = {id}");
                 return NotFound("Não foi encontrado categoria!!");
             }
 
@@ -76,6 +78,7 @@ namespace ApiCatalogo.Controllers
         {
             if (categoria is null)
             {
+                _logger.LogWarning($"Dados inválidos, não foi encontrado o id da categoria = {categoria.CategoriaId}");
                 return BadRequest("Não foi possível criar uma categoria");
             }
             _context.Categorias.Add(categoria);
@@ -107,6 +110,7 @@ namespace ApiCatalogo.Controllers
 
             if (categoria is null)
             {
+                _logger.LogWarning($"Categoria com id= {id} não encontrada");
                 return NotFound("Categoria não pode ser excluída");
             }
 
