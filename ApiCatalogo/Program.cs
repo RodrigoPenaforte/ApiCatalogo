@@ -1,7 +1,10 @@
 using ApiCatalogo.Context;
+using ApiCatalogo.Controllers;
 using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
+using ApiCatalogo.Repository;
+using ApiCatalogo.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -26,6 +29,12 @@ builder.Services.AddSwaggerGen();
 string SqlServerConnection = builder.Configuration.GetConnectionString("Default");
 
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(SqlServerConnection));
+
+
+//Injeção 
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<CategoriaService>();
+
 
 
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration
