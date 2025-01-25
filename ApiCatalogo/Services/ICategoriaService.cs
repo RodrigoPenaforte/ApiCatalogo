@@ -12,7 +12,7 @@ namespace ApiCatalogo.Services
         Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto();
         Task<Categoria> BuscarCategoriaPorId(int id);
         Task<Categoria> AdicionarCategoria(Categoria categoria);
-        Task<Categoria> AtualizarCategoria(Categoria categoria);
+        Task<Categoria> AtualizarCategoria(int id, Categoria categoria);
         Task<Categoria> DeletarCategoria(int id);
 
     }

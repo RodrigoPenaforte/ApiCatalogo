@@ -61,9 +61,9 @@ namespace ApiCatalogo.Controllers
         }
 
         [HttpPut("id")]
-        public async Task<ActionResult<Categoria>> AtualizarCategoria( Categoria categoria)
+        public async Task<ActionResult<Categoria>> AtualizarCategoria( int id, Categoria categoria)
         {
-            return await _categoriaService.AtualizarCategoria(categoria);
+            return await _categoriaService.AtualizarCategoria(id, categoria);
         }
 
         [HttpDelete("id")]

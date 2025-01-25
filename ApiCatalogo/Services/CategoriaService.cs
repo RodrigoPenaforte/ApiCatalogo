@@ -57,14 +57,14 @@ namespace ApiCatalogo.Services
             return await adicionarCategoria;
         }
 
-        public async Task<Categoria> AtualizarCategoria(Categoria categoria)
+        public async Task<Categoria> AtualizarCategoria(int id, Categoria categoria)
         {
             if (categoria is null)
             {
                 throw new Exception("Não foi possível atualizar a categoria");
 
             }
-            var atualizarCategoria = await _categoriaRepository.AtualizarCategoria(categoria);
+            var atualizarCategoria = await _categoriaRepository.AtualizarCategoria(id, categoria);
             return atualizarCategoria;
 
         }

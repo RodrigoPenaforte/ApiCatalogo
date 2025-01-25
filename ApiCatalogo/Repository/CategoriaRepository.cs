@@ -43,7 +43,7 @@ namespace ApiCatalogo.Repository
             return categoria;
         }
 
-        public async Task<Categoria> AtualizarCategoria(Categoria categoria)
+        public async Task<Categoria> AtualizarCategoria(int id, Categoria categoria)
         {
             _context.Update(categoria);
             await _context.SaveChangesAsync();
