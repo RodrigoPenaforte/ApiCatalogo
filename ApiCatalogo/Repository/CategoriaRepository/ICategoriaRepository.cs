@@ -4,16 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Models;
 
-namespace ApiCatalogo.Services
+namespace ApiCatalogo.Repository.CategoriaRepository
 {
-    public interface ICategoriaService
+    public interface ICategoriaRepository
     {
-        Task<IEnumerable<Categoria>> BuscarTodos();
+        Task<IEnumerable<Categoria>> BuscarCategoria();
         Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto();
         Task<Categoria> BuscarCategoriaPorId(int id);
         Task<Categoria> AdicionarCategoria(Categoria categoria);
-        Task<Categoria> AtualizarCategoria(int id, Categoria categoria);
-        Task<Categoria> DeletarCategoria(int id);
+        Task<Categoria> AtualizarCategoria( int id, Categoria categoria);
+        Categoria DeletarCategoria(int id);
 
     }
 }

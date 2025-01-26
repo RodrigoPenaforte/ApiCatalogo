@@ -1,8 +1,8 @@
 using ApiCatalogo.Models;
-using ApiCatalogo.Repository;
+using ApiCatalogo.Repository.CategoriaRepository;
 
 
-namespace ApiCatalogo.Services
+namespace ApiCatalogo.Services.CategoriaService
 {
     public class CategoriaService : ICategoriaService
     {
@@ -55,6 +55,7 @@ namespace ApiCatalogo.Services
                 throw new Exception("Não foi possível criar uma categoria");
             }
             return await adicionarCategoria;
+            
         }
 
         public async Task<Categoria> AtualizarCategoria(int id, Categoria categoria)

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ApiCatalogo.Repository
+namespace ApiCatalogo.Repository.CategoriaRepository
 {
     public class CategoriaRepository : ICategoriaRepository
     {

@@ -3,8 +3,13 @@ using ApiCatalogo.Controllers;
 using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
+using ApiCatalogo.Models;
 using ApiCatalogo.Repository;
+using ApiCatalogo.Repository.CategoriaRepository;
+using ApiCatalogo.Repository.ProdutoRepository;
 using ApiCatalogo.Services;
+using ApiCatalogo.Services.CategoriaService;
+using ApiCatalogo.Services.ProdutoService;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -33,8 +38,9 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(SqlS
 
 //Injeção 
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<CategoriaService>();
-
+builder.Services.AddScoped<ProdutoService>();
 
 
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration

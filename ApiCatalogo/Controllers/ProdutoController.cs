@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Context;
 using ApiCatalogo.Models;
+using ApiCatalogo.Services.ProdutoService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +17,13 @@ namespace ApiCatalogo.Controllers
     [Route("[controller]")]
     public class ProdutoController : ControllerBase
     {
-        private readonly AppDbContext _context;
 
-        public ProdutoController(AppDbContext context)
+        private readonly ProdutoService _produtoService;
+
+        public ProdutoController(ProdutoService produtoService)
         {
-            _context = context;
+            _produtoService = produtoService;
+
         }
 
 
@@ -28,57 +31,35 @@ namespace ApiCatalogo.Controllers
         public async Task<ActionResult<IEnumerable<Produto>>> BuscarProduto()
         {
 
-            var filtrarProduto = _context.Produtos;
-
-            if (filtrarProduto is null)
-            {
-                return NotFound("Produto Vazio");
-            }
-            return await filtrarProduto.ToListAsync();
+            var buscarTodosOsProdutos = await _produtoService.BuscarProduto();
+            return Ok(buscarTodosOsProdutos);
 
         }
 
 
         [HttpGet("{id}", Name = "ObterProduto")]
 
-        public ActionResult<Produto> BuscarProdutoId(int id)
+        public async Task<ActionResult<Produto>> BuscarProdutoId(int id)
         {
-            var buscarIdProduto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-            if (buscarIdProduto is null)
-            {
-                return NotFound("Id não foi encontrado..");
-            }
-
-            return buscarIdProduto;
+            return await _produtoService.BuscarProdutoId(id);
         }
 
 
         [HttpPost]
 
-        public ActionResult AdicionarProduto(Produto produto)
+        public async Task<ActionResult> AdicionarProduto(Produto produto)
         {
-            if (produto is null)
-                return BadRequest();
-
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+            var adicionarProduto = await _produtoService.AdicionarProduto(produto);
+            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, adicionarProduto);
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
 
-        public async Task<ActionResult<Produto>> AtualizarProduto(int id, Produto produto)
+        public async Task<ActionResult<Produto>> AtualizarProduto(Produto produto)
         {
-            if (id != produto.ProdutoId)
-            {
-                return BadRequest("Produto não foi atualizado");
-            }
-
-            _context.Produtos.Update(produto);
-            await _context.SaveChangesAsync();
-
-            return Ok(produto);
+            var atualizar = await _produtoService.AtualizarProduto(produto);
+            return Ok(atualizar);
 
         }
 
@@ -86,15 +67,7 @@ namespace ApiCatalogo.Controllers
 
         public async Task<ActionResult<Produto>> ExcluirProduto(int id)
         {
-            var selecionarProduto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-            if(selecionarProduto is null)
-                return NotFound("Produto não pode ser encontrado e deletado");
-                
-            _context.Produtos.Remove(selecionarProduto);
-            _context.SaveChanges();
-
-            return Ok();
-
+            return await _produtoService.DeletarProduto(id);
         }
 
     }

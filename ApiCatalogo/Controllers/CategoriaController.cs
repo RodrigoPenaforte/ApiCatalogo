@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ApiCatalogo.Context;
 using ApiCatalogo.Models;
 using ApiCatalogo.Services;
+using ApiCatalogo.Services.CategoriaService;
 using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
