@@ -7,6 +7,7 @@ using ApiCatalogo.Models;
 using ApiCatalogo.Repository;
 using ApiCatalogo.Repository.CategoriaRepository;
 using ApiCatalogo.Repository.ProdutoRepository;
+using ApiCatalogo.Repository.RepositoryGeneric;
 using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using ApiCatalogo.Services.ProdutoService;
@@ -39,6 +40,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(SqlS
 //Injeção 
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+builder.Services.AddScoped(typeof(IRepositorioGenerico<>), typeof(RepositorioGenerico<>));
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<ProdutoService>();
 
