@@ -25,9 +25,9 @@ namespace ApiCatalogo.Services.CategoriaService
 
             return categorias;
         }
-        public async Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto()
+        public async Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto(int id)
         {
-            var fitrarCategoriaPorProduto = _categoriaRepository.BuscarCategoriaPorProduto();
+            var fitrarCategoriaPorProduto = _categoriaRepository.BuscarCategoriaPorProduto(id);
 
             if (fitrarCategoriaPorProduto == null)
             {

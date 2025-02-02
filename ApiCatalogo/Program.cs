@@ -1,5 +1,6 @@
 using ApiCatalogo.Context;
 using ApiCatalogo.Controllers;
+using ApiCatalogo.DTOs.Mapping;
 using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
@@ -41,8 +42,11 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(SqlS
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped(typeof(IRepositorioGenerico<>), typeof(RepositorioGenerico<>));
+
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<ProdutoService>();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration

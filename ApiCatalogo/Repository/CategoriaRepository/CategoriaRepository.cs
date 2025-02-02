@@ -24,9 +24,9 @@ namespace ApiCatalogo.Repository.CategoriaRepository
             return await _context.Categorias.ToListAsync();
         }
 
-        public async Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto()
+        public async Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto(int id)
         {
-            var categoriaPorProduto = _context.Categorias.Include(p => p.Produtos).Where(c => c.CategoriaId <= 10).ToListAsync();
+            var categoriaPorProduto = _context.Categorias.Where(c => c.CategoriaId == id).Include(c => c.Produtos).ToListAsync();
             return await categoriaPorProduto;
         }
 
