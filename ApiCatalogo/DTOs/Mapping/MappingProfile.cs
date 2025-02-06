@@ -13,7 +13,6 @@ namespace ApiCatalogo.DTOs.Mapping
     {
         public MappingProfile()
         {
-
             // Mapeamentos para DTOs de Produto
             CreateMap<Produto, ProdutoDTO>().ReverseMap();
             CreateMap<Produto, ProdutoInputDTO>().ReverseMap();
@@ -21,7 +20,8 @@ namespace ApiCatalogo.DTOs.Mapping
 
             // Mapeamentos para DTOs de Categoria
             CreateMap<Categoria, CategoriaDTO>().ReverseMap();
-            CreateMap<Categoria, CategoriaInputDTO>().ReverseMap();
+            CreateMap<Categoria, CategoriaInputDTO>().ForMember(input => input.ProdutoOutputDTO, opt => opt.MapFrom(p => p.Produtos))
+            .ReverseMap();
             CreateMap<Categoria, CategoriaOutputDTO>()
                 .ForMember(dest => dest.ProdutoOutputDTO, opt => opt.MapFrom(p => p.Produtos))
                 .ReverseMap();

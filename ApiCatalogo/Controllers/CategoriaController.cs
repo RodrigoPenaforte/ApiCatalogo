@@ -58,29 +58,64 @@ namespace ApiCatalogo.Controllers
         {
             var categoriaPorId = await _categoriaService.BuscarCategoriaPorId(id);
 
-            return Ok(categoriaPorId);
+            //Destino é o CategoriaDTO e a origem é categoriaPorId
+            var categoriaDto = _mapper.Map<CategoriaDTO>(categoriaPorId);
+            if (categoriaDto is null)
+            {
+                _logger.LogError("Não foi possível encontrar o id de categoria");
+            }
+
+            return Ok(categoriaDto);
 
         }
 
         [HttpPost]
-        public async Task<ActionResult<Categoria>> AdicionarCategoria(Categoria categoria)
+        public async Task<ActionResult<CategoriaOutputDTO>> AdicionarCategoria(CategoriaInputDTO categoriaInputDto)
         {
-            var categoriaAdicionar = await _categoriaService.AdicionarCategoria(categoria);
 
-            return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.CategoriaId }, categoriaAdicionar);
+            var categoriaMapeada = _mapper.Map<Categoria>(categoriaInputDto);
+            var categoriaAdicionar = await _categoriaService.AdicionarCategoria(categoriaMapeada);
+
+            if (categoriaAdicionar is null)
+            {
+                _logger.LogError("Não foi possível adicionar uma categoria");
+            }
+
+            return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar.CategoriaId }, categoriaAdicionar);
         }
 
         [HttpPut("id")]
-        public async Task<ActionResult<Categoria>> AtualizarCategoria(int id, Categoria categoria)
+        public async Task<ActionResult<CategoriaOutputDTO>> AtualizarCategoria(int id, CategoriaInputDTO categoriaInput)
         {
-            return await _categoriaService.AtualizarCategoria(id, categoria);
+
+            var categoriaMapeada = _mapper.Map<Categoria>(categoriaInput);
+
+            var categoriaAtualizada = await _categoriaService.AtualizarCategoria(id, categoriaMapeada);
+
+            if (categoriaAtualizada is null)
+            {
+                _logger.LogError("Não foi possível atualizar categoria");
+            }
+
+            var categoriaOutPut = _mapper.Map<CategoriaOutputDTO>(categoriaAtualizada);
+
+            return Ok(categoriaOutPut);
         }
 
         [HttpDelete("id")]
 
-        public async Task<ActionResult<Categoria>> DeletarCategoria(int id)
+        public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
         {
-            return await _categoriaService.DeletarCategoria(id);
+            var categoria = _categoriaService.BuscarCategoriaPorId(id);
+
+            if (categoria is null)
+            {
+                _logger.LogError("Não existe categoria");
+            }
+
+            var categoriaDeletado = await _categoriaService.DeletarCategoria(id);
+
+            return _mapper.Map<CategoriaDTO>(categoriaDeletado);
 
         }
 
