@@ -22,7 +22,9 @@ namespace ApiCatalogo.DTOs.Mapping
             // Mapeamentos para DTOs de Categoria
             CreateMap<Categoria, CategoriaDTO>().ReverseMap();
             CreateMap<Categoria, CategoriaInputDTO>().ReverseMap();
-            CreateMap<Categoria, CategoriaOutputDTO>().ReverseMap();
+            CreateMap<Categoria, CategoriaOutputDTO>()
+                .ForMember(dest => dest.ProdutoOutputDTO, opt => opt.MapFrom(p => p.Produtos))
+                .ReverseMap();
         }
     }
 }
