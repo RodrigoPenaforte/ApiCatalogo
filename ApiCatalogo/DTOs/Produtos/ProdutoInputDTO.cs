@@ -7,6 +7,7 @@ namespace ApiCatalogo.DTOs.Produtos
 {
     public class ProdutoInputDTO
     {
+        public int CategoriaId { get; set; }
         public int ProdutoId { get; set; }
         public string? Nome { get; set; }
         public string? Descricao { get; set; }

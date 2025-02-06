@@ -81,7 +81,7 @@ namespace ApiCatalogo.Controllers
                 _logger.LogError("Não foi possível adicionar uma categoria");
             }
 
-            return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar.CategoriaId }, categoriaAdicionar);
+            return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar?.CategoriaId }, categoriaAdicionar);
         }
 
         [HttpPut("id")]
@@ -106,17 +106,8 @@ namespace ApiCatalogo.Controllers
 
         public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
         {
-            var categoria = _categoriaService.BuscarCategoriaPorId(id);
-
-            if (categoria is null)
-            {
-                _logger.LogError("Não existe categoria");
-            }
-
             var categoriaDeletado = await _categoriaService.DeletarCategoria(id);
-
             return _mapper.Map<CategoriaDTO>(categoriaDeletado);
-
         }
 
     }
