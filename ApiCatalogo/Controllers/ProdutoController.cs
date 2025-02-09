@@ -4,7 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Context;
+using ApiCatalogo.DTOs.Produtos;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
+using ApiCatalogo.Services.ProdutoService;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -16,85 +20,104 @@ namespace ApiCatalogo.Controllers
     [Route("[controller]")]
     public class ProdutoController : ControllerBase
     {
-        private readonly AppDbContext _context;
 
-        public ProdutoController(AppDbContext context)
+        private readonly ProdutoService _produtoService;
+        private readonly ILogger<ProdutoController> _logger;
+        private readonly IMapper _mapper;
+
+
+        public ProdutoController(ProdutoService produtoService, ILogger<ProdutoController> logger, IMapper mapper)
         {
-            _context = context;
+            _produtoService = produtoService;
+            _logger = logger;
+            _mapper = mapper;
+
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Produto>>> BuscarProduto()
+        public async Task<ActionResult<IEnumerable<ProdutoDTO>>> BuscarProduto()
         {
 
-            var filtrarProduto = _context.Produtos;
+            var produtos = await _produtoService.BuscarProduto();
 
-            if (filtrarProduto is null)
+            var produtoDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+            if (produtoDto is null)
             {
-                return NotFound("Produto Vazio");
+                _logger.LogError(" Os Produtos não foram encontrado");
             }
-            return await filtrarProduto.ToListAsync();
+            return Ok(produtoDto);
 
         }
+
+        [HttpGet("paginados")]
+        public async Task<ActionResult<PagedModel<ProdutoDTO>>> BuscarProdutosPaginados(int pagina = 1, int tamanhoPagina = 5)
+        {
+            var pagedProdutos = await _produtoService.BuscarProdutosPaginados(pagina, tamanhoPagina);
+
+            var pagedProdutosDto = new PagedModel<ProdutoDTO>
+            {
+                PaginaAtual = pagedProdutos.PaginaAtual,
+                PaginaTamanho = pagedProdutos.PaginaTamanho,
+                TotalItens = pagedProdutos.TotalItens,
+                Itens = _mapper.Map<IList<ProdutoDTO>>(pagedProdutos.Itens)
+            };
+
+            return Ok(pagedProdutosDto);
+        }
+
 
 
         [HttpGet("{id}", Name = "ObterProduto")]
 
-        public ActionResult<Produto> BuscarProdutoId(int id)
+        public async Task<ActionResult<ProdutoDTO>> BuscarProdutoId(int id)
         {
-            var buscarIdProduto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-            if (buscarIdProduto is null)
+            var buscarProdutoId = await _produtoService.BuscarProdutoId(id);
+
+            var produtoDto = _mapper.Map<ProdutoDTO>(buscarProdutoId);
+            if (produtoDto is null)
             {
-                return NotFound("Id não foi encontrado..");
+                _logger.LogError("Não foi possível achar o produto pelo id");
             }
 
-            return buscarIdProduto;
+            return Ok(produtoDto);
+
         }
 
 
         [HttpPost]
 
-        public ActionResult AdicionarProduto(Produto produto)
+        public async Task<ActionResult<ProdutoOutputDTO>> AdicionarProduto(ProdutoInputDTO produtoDto)
         {
-            if (produto is null)
-                return BadRequest();
+            var produtoMapeado = _mapper.Map<Produto>(produtoDto);
+            var adicionarProduto = await _produtoService.AdicionarProduto(produtoMapeado);
+            if (adicionarProduto is null)
+                _logger.LogError("Produto não pode ser adicionado");
 
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.ProdutoId }, produto);
+            return new CreatedAtRouteResult("ObterProduto", new { id = adicionarProduto?.ProdutoId }, adicionarProduto);
 
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
 
-        public async Task<ActionResult<Produto>> AtualizarProduto(int id, Produto produto)
+        public async Task<ActionResult<ProdutoOutputDTO>> AtualizarProduto(ProdutoInputDTO produtoDto)
         {
-            if (id != produto.ProdutoId)
-            {
-                return BadRequest("Produto não foi atualizado");
-            }
+            var produtoMapeado = _mapper.Map<Produto>(produtoDto);
+            var atualizarProduto = await _produtoService.AtualizarProduto(produtoMapeado);
 
-            _context.Produtos.Update(produto);
-            await _context.SaveChangesAsync();
+            if (atualizarProduto is null)
+                _logger.LogError("Não foi possível atualizar o produto");
 
-            return Ok(produto);
+            return Ok(atualizarProduto);
 
         }
 
         [HttpDelete("{id}")]
 
-        public async Task<ActionResult<Produto>> ExcluirProduto(int id)
+        public async Task<ActionResult<ProdutoDTO>> ExcluirProduto(int id)
         {
-            var selecionarProduto = _context.Produtos.FirstOrDefault(p => p.ProdutoId == id);
-            if(selecionarProduto is null)
-                return NotFound("Produto não pode ser encontrado e deletado");
-                
-            _context.Produtos.Remove(selecionarProduto);
-            _context.SaveChanges();
-
-            return Ok();
-
+            var produtoDeletado = await _produtoService.DeletarProduto(id);
+            return _mapper.Map<ProdutoDTO>(produtoDeletado);
         }
 
     }

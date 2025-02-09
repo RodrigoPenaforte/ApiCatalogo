@@ -4,7 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Context;
+using ApiCatalogo.DTOs.Categorias;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
+using ApiCatalogo.Services;
+using ApiCatalogo.Services.CategoriaService;
+using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,104 +21,111 @@ namespace ApiCatalogo.Controllers
     [ApiController]
     public class CategoriaController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly CategoriaService _categoriaService;
+        private readonly ILogger<CategoriaController> _logger;
+        private readonly IMapper _mapper;
 
-        public CategoriaController(AppDbContext context)
+        public CategoriaController(CategoriaService categoriaService, ILogger<CategoriaController> logger, IMapper mapper)
         {
-            _context = context;
+            _categoriaService = categoriaService;
+            _logger = logger;
+            _mapper = mapper;
         }
+
 
         [HttpGet]
-
-        public async Task<ActionResult<IEnumerable<Categoria>>> BuscarCategoria()
+        public async Task<ActionResult<CategoriaDTO>> BuscarCategoria()
         {
-
-            var fitlrarCategoria = _context.Categorias.AsNoTracking();
-
-            if (fitlrarCategoria is null)
-            {
-                return NotFound("Não foi encontrado nenhuma categoria");
-            }
-
-
-            return await fitlrarCategoria.ToListAsync();
-        }
-
-        [HttpGet("CategoriaProduto")]
-
-        public async Task<ActionResult<IEnumerable<Categoria>>> BuscarCategoriaPorPrduto()
-        {
-            var fitlrarCategoriaPorProduto = _context.Categorias.Include(p => p.Produtos).Where( c => c.CategoriaId <=5).ToListAsync();
-
-            if (fitlrarCategoriaPorProduto is null)
-            {
-                return NotFound("Não foi encontrado nenhuma categoria");
-            }
-
-            return await fitlrarCategoriaPorProduto;
-
-        }
-
-        [HttpGet("{id:int:min(1)}", Name = "ObterCategoria")]
-
-        public async Task<ActionResult<Categoria>> BuscarCategoriaPorId(int id)
-        {
-
-            var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
-
-            if (categoria is null)
-            {
-                return NotFound("Não foi encontrado categoria!!");
-            }
-
+            var categoria = await _categoriaService.BuscarTodos();
             return Ok(categoria);
         }
 
-        [HttpPost]
 
-        public async Task<ActionResult<Categoria>> AdicionarCategoria(Categoria categoria)
+        [HttpGet("CategoriaProduto")]
+        public async Task<ActionResult<IEnumerable<CategoriaOutputDTO>>> BuscarCategoriaPorProduto(int id)
         {
-            if (categoria is null)
+            var categoriaPorProduto = await _categoriaService.BuscarCategoriaPorProduto(id);
+            var categoriaDto = _mapper.Map<IEnumerable<CategoriaOutputDTO>>(categoriaPorProduto);
+            if (categoriaDto == null)
             {
-                return BadRequest("Não foi possível criar uma categoria");
+                _logger.LogError("Não foi possível encontrar Categoria por produtos");
             }
-            _context.Categorias.Add(categoria);
-            await _context.SaveChangesAsync();
+            return Ok(categoriaDto);
+        }
 
-            return new CreatedAtRouteResult("ObterCategoria", new { id = categoria.CategoriaId }, categoria);
+        [HttpGet("paginados")]
+        public async Task<ActionResult<PagedModel<CategoriaDTO>>> BuscarCategoriasPaginados(int pagina = 1, int tamanhoPagina = 5)
+        {
+            var pagedCategorias = await _categoriaService.BuscarCategoriasPaginados(pagina, tamanhoPagina);
+
+            var pagedCategoriaDto = new PagedModel<CategoriaDTO>
+            {
+                PaginaAtual = pagedCategorias.PaginaAtual,
+                PaginaTamanho = pagedCategorias.PaginaTamanho,
+                TotalItens = pagedCategorias.TotalItens,
+                Itens = _mapper.Map<IList<CategoriaDTO>>(pagedCategorias.Itens)
+            };
+
+            return Ok(pagedCategoriaDto);
+
+        }
+
+
+        [HttpGet("{id:int:min(1)}", Name = "ObterCategoria")]
+        public async Task<ActionResult<CategoriaDTO>> BuscarCategoriaPorId(int id)
+        {
+            var categoriaPorId = await _categoriaService.BuscarCategoriaPorId(id);
+
+            //Destino é o CategoriaDTO e a origem é categoriaPorId
+            var categoriaDto = _mapper.Map<CategoriaDTO>(categoriaPorId);
+            if (categoriaDto is null)
+            {
+                _logger.LogError("Não foi possível encontrar o id de categoria");
+            }
+
+            return Ok(categoriaDto);
+
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<CategoriaOutputDTO>> AdicionarCategoria(CategoriaInputDTO categoriaInputDto)
+        {
+
+            var categoriaMapeada = _mapper.Map<Categoria>(categoriaInputDto);
+            var categoriaAdicionar = await _categoriaService.AdicionarCategoria(categoriaMapeada);
+
+            if (categoriaAdicionar is null)
+            {
+                _logger.LogError("Não foi possível adicionar uma categoria");
+            }
+
+            return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar?.CategoriaId }, categoriaAdicionar);
         }
 
         [HttpPut("id")]
-        public async Task<ActionResult<Categoria>> AtualizarCategoria(int id, Categoria categoria)
+        public async Task<ActionResult<CategoriaOutputDTO>> AtualizarCategoria(int id, CategoriaInputDTO categoriaInput)
         {
 
-            if (id != categoria.CategoriaId)
+            var categoriaMapeada = _mapper.Map<Categoria>(categoriaInput);
+
+            var categoriaAtualizada = await _categoriaService.AtualizarCategoria(id, categoriaMapeada);
+
+            if (categoriaAtualizada is null)
             {
-                return NotFound("Não foi possível atualizar a categoria");
+                _logger.LogError("Não foi possível atualizar categoria");
             }
 
-            _context.Update(categoria);
-            await _context.SaveChangesAsync();
+            var categoriaOutPut = _mapper.Map<CategoriaOutputDTO>(categoriaAtualizada);
 
-            return categoria;
+            return Ok(categoriaOutPut);
         }
 
         [HttpDelete("id")]
 
-        public async Task<ActionResult<Categoria>> DeletarCategoria(int id)
+        public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
         {
-            var categoria = _context.Categorias.FirstOrDefault(c => c.CategoriaId == id);
-
-            if (categoria is null)
-            {
-                return NotFound("Categoria não pode ser excluída");
-            }
-
-            _context.Remove(categoria);
-            await _context.SaveChangesAsync();
-
-            return Ok("Foi excluído com sucesso...");
-
+            var categoriaDeletado = await _categoriaService.DeletarCategoria(id);
+            return _mapper.Map<CategoriaDTO>(categoriaDeletado);
         }
 
     }
