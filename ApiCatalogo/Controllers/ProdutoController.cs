@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ApiCatalogo.Context;
 using ApiCatalogo.DTOs.Produtos;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Services.ProdutoService;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +49,23 @@ namespace ApiCatalogo.Controllers
             return Ok(produtoDto);
 
         }
+
+        [HttpGet("paginados")]
+        public async Task<ActionResult<PagedModel<ProdutoDTO>>> BuscarProdutosPaginados(int pagina = 1, int tamanhoPagina = 5)
+        {
+            var pagedProdutos = await _produtoService.BuscarProdutosPaginados(pagina, tamanhoPagina);
+
+            var pagedProdutosDto = new PagedModel<ProdutoDTO>
+            {
+                PaginaAtual = pagedProdutos.PaginaAtual,
+                PaginaTamanho = pagedProdutos.PaginaTamanho,
+                TotalItens = pagedProdutos.TotalItens,
+                Itens = _mapper.Map<IList<ProdutoDTO>>(pagedProdutos.Itens)
+            };
+
+            return Ok(pagedProdutosDto);
+        }
+
 
 
         [HttpGet("{id}", Name = "ObterProduto")]
@@ -98,7 +116,7 @@ namespace ApiCatalogo.Controllers
 
         public async Task<ActionResult<ProdutoDTO>> ExcluirProduto(int id)
         {
-            var produtoDeletado =  await _produtoService.DeletarProduto(id);
+            var produtoDeletado = await _produtoService.DeletarProduto(id);
             return _mapper.Map<ProdutoDTO>(produtoDeletado);
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Context;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Repository.ProdutoRepository
@@ -36,7 +37,7 @@ namespace ApiCatalogo.Repository.ProdutoRepository
             return produto;
         }
 
-        public async Task<Produto> AtualizarProduto( Produto produto)
+        public async Task<Produto> AtualizarProduto(Produto produto)
         {
             _context.Update(produto);
             await _context.SaveChangesAsync();
@@ -51,5 +52,26 @@ namespace ApiCatalogo.Repository.ProdutoRepository
             _context.SaveChanges();
             return produtoId;
         }
+
+        public async Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina)
+        {
+            var query = _context.Produtos.AsQueryable();
+
+            var totalItens = await query.CountAsync();
+
+            var itens = await query
+                .Skip((pagina - 1) * tamanhoPagina)
+                .Take(tamanhoPagina)
+                .ToListAsync();
+
+            return new PagedModel<Produto>
+            {
+                PaginaAtual = pagina,
+                PaginaTamanho = tamanhoPagina,
+                TotalItens = totalItens,
+                Itens = itens
+            };
+        }
+
     }
 }

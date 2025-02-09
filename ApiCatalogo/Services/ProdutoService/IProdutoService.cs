@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 
 namespace ApiCatalogo.Services.ProdutoService
 {
@@ -13,6 +14,8 @@ namespace ApiCatalogo.Services.ProdutoService
         Task<Produto> AdicionarProduto(Produto produto);
         Task<Produto> AtualizarProduto(Produto produto);
         Task<Produto> DeletarProduto(int id);
+        Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina);
+
 
     }
 }

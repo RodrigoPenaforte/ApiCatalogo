@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repository.ProdutoRepository;
 
 namespace ApiCatalogo.Services.ProdutoService
@@ -26,6 +27,15 @@ namespace ApiCatalogo.Services.ProdutoService
             return buscaTodosProdutos;
         }
 
+        public async Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina)
+        {
+            if (pagina <= 0 || tamanhoPagina <= 0)
+                throw new NotImplementedException("Página e tamanho da página devem ser maiores que zero.");
+
+            return await _produtoRepository.BuscarProdutosPaginados(pagina, tamanhoPagina);
+        }
+
+
         public async Task<Produto> BuscarProdutoId(int id)
         {
             var buscarProdutoPorId = _produtoRepository.BuscarProdutoId(id);
@@ -46,7 +56,7 @@ namespace ApiCatalogo.Services.ProdutoService
             return AdicionarProduto;
         }
 
-        public async Task<Produto> AtualizarProduto( Produto produto)
+        public async Task<Produto> AtualizarProduto(Produto produto)
         {
             if (produto is null)
             {
