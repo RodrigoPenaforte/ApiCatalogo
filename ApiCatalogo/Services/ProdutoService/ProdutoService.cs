@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using ApiCatalogo.Models;
 using ApiCatalogo.Pagination;
 using ApiCatalogo.Repository.ProdutoRepository;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace ApiCatalogo.Services.ProdutoService
 {
@@ -30,11 +32,22 @@ namespace ApiCatalogo.Services.ProdutoService
         public async Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina)
         {
             if (pagina <= 0 || tamanhoPagina <= 0)
-                throw new NotImplementedException("Página e tamanho da página devem ser maiores que zero.");
+                throw new ArgumentException("Página e tamanho da página devem ser maiores que zero.");
 
-            return await _produtoRepository.BuscarProdutosPaginados(pagina, tamanhoPagina);
+            var query = await _produtoRepository.BuscarProdutosPaginado();
+            query = query.OrderByDescending(p => p.ProdutoId);
+
+            var totalItens = await query.CountAsync();
+            var itens = await query.Skip((pagina - 1) * tamanhoPagina).Take(tamanhoPagina).ToListAsync();
+
+            return new PagedModel<Produto>
+            {
+                PaginaAtual = pagina,
+                PaginaTamanho = tamanhoPagina,
+                TotalItens = totalItens,
+                Itens = itens
+            };
         }
-
 
         public async Task<Produto> BuscarProdutoId(int id)
         {

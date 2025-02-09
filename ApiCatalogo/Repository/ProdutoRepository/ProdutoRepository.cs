@@ -53,24 +53,9 @@ namespace ApiCatalogo.Repository.ProdutoRepository
             return produtoId;
         }
 
-        public async Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina)
+        public async Task<IQueryable<Produto>> BuscarProdutosPaginado()
         {
-            var query = _context.Produtos.AsQueryable();
-
-            var totalItens = await query.CountAsync();
-
-            var itens = await query
-                .Skip((pagina - 1) * tamanhoPagina)
-                .Take(tamanhoPagina)
-                .ToListAsync();
-
-            return new PagedModel<Produto>
-            {
-                PaginaAtual = pagina,
-                PaginaTamanho = tamanhoPagina,
-                TotalItens = totalItens,
-                Itens = itens
-            };
+            return await Task.FromResult(_context.Produtos.AsQueryable());
         }
 
     }

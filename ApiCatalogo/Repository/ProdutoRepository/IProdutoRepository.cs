@@ -14,8 +14,7 @@ namespace ApiCatalogo.Repository.ProdutoRepository
         Task<Produto> AdicionarProduto(Produto produto);
         Task<Produto> AtualizarProduto(Produto produto);
         Produto DeletarProduto(int id);
-        Task<PagedModel<Produto>> BuscarProdutosPaginados(int pagina, int tamanhoPagina);
-
+        Task<IQueryable<Produto>> BuscarProdutosPaginado();
 
     }
 }
