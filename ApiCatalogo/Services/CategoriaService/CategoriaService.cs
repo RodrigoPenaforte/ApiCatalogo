@@ -1,5 +1,7 @@
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Repository.CategoriaRepository;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace ApiCatalogo.Services.CategoriaService
@@ -25,6 +27,27 @@ namespace ApiCatalogo.Services.CategoriaService
 
             return categorias;
         }
+
+        public async Task<PagedModel<Categoria>> BuscarCategoriasPaginados(int pagina, int tamanhoPagina)
+        {
+             if (pagina <= 0 || tamanhoPagina <= 0)
+                throw new ArgumentException("Página e tamanho da página devem ser maiores que zero.");
+
+            var query = await _categoriaRepository.BuscarCategoriaPaginado();
+            query = query.OrderByDescending(c => c.CategoriaId);
+
+            var totalItens = await query.CountAsync();
+            var itens = await query.Skip((pagina - 1) * tamanhoPagina).Take(tamanhoPagina).ToListAsync();
+
+            return new PagedModel<Categoria>
+            {
+                PaginaAtual = pagina,
+                PaginaTamanho = tamanhoPagina,
+                TotalItens = totalItens,
+                Itens = itens
+            };
+        }
+
         public async Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto(int id)
         {
             var fitrarCategoriaPorProduto = _categoriaRepository.BuscarCategoriaPorProduto(id);
@@ -55,7 +78,7 @@ namespace ApiCatalogo.Services.CategoriaService
                 throw new Exception("Não foi possível criar uma categoria");
             }
             return await adicionarCategoria;
-            
+
         }
 
         public async Task<Categoria> AtualizarCategoria(int id, Categoria categoria)
@@ -74,11 +97,12 @@ namespace ApiCatalogo.Services.CategoriaService
         {
             if (id != 0)
             {
-                var deletarCategoria =  _categoriaRepository.DeletarCategoria(id);
+                var deletarCategoria = _categoriaRepository.DeletarCategoria(id);
                 return deletarCategoria;
             }
             throw new Exception("Não foi possível deletar uma categoria");
 
         }
+
     }
 }

@@ -10,11 +10,11 @@ namespace ApiCatalogo.Repository.ProdutoRepository
     public interface IProdutoRepository
     {
         Task<IEnumerable<Produto>> BuscarProduto();
+        Task<IQueryable<Produto>> BuscarProdutosPaginado();
         Task<Produto> BuscarProdutoId(int id);
         Task<Produto> AdicionarProduto(Produto produto);
         Task<Produto> AtualizarProduto(Produto produto);
         Produto DeletarProduto(int id);
-        Task<IQueryable<Produto>> BuscarProdutosPaginado();
 
     }
 }

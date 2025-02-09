@@ -9,6 +9,7 @@ namespace ApiCatalogo.Repository.CategoriaRepository
     public interface ICategoriaRepository
     {
         Task<IEnumerable<Categoria>> BuscarCategoria();
+        Task<IQueryable<Categoria>> BuscarCategoriaPaginado();
         Task<IEnumerable<Categoria>> BuscarCategoriaPorProduto(int id);
         Task<Categoria> BuscarCategoriaPorId(int id);
         Task<Categoria> AdicionarCategoria(Categoria categoria);

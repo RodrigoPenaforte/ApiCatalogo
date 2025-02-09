@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ApiCatalogo.Context;
 using ApiCatalogo.DTOs.Categorias;
 using ApiCatalogo.Models;
+using ApiCatalogo.Pagination;
 using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using AutoMapper;
@@ -50,6 +51,23 @@ namespace ApiCatalogo.Controllers
                 _logger.LogError("Não foi possível encontrar Categoria por produtos");
             }
             return Ok(categoriaDto);
+        }
+
+        [HttpGet("paginados")]
+        public async Task<ActionResult<PagedModel<CategoriaDTO>>> BuscarCategoriasPaginados(int pagina = 1, int tamanhoPagina = 5)
+        {
+            var pagedCategorias = await _categoriaService.BuscarCategoriasPaginados(pagina, tamanhoPagina);
+
+            var pagedCategoriaDto = new PagedModel<CategoriaDTO>
+            {
+                PaginaAtual = pagedCategorias.PaginaAtual,
+                PaginaTamanho = pagedCategorias.PaginaTamanho,
+                TotalItens = pagedCategorias.TotalItens,
+                Itens = _mapper.Map<IList<CategoriaDTO>>(pagedCategorias.Itens)
+            };
+
+            return Ok(pagedCategoriaDto);
+
         }
 
 

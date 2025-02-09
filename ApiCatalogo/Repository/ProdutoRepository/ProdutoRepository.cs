@@ -24,6 +24,10 @@ namespace ApiCatalogo.Repository.ProdutoRepository
             var buscarProduto = _context.Produtos;
             return await buscarProduto.ToListAsync();
         }
+        public async Task<IQueryable<Produto>> BuscarProdutosPaginado()
+        {
+            return await Task.FromResult(_context.Produtos.AsQueryable());
+        }
 
         public async Task<Produto> BuscarProdutoId(int id)
         {
@@ -53,10 +57,6 @@ namespace ApiCatalogo.Repository.ProdutoRepository
             return produtoId;
         }
 
-        public async Task<IQueryable<Produto>> BuscarProdutosPaginado()
-        {
-            return await Task.FromResult(_context.Produtos.AsQueryable());
-        }
 
     }
 }
