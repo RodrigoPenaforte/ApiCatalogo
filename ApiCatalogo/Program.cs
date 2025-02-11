@@ -12,6 +12,7 @@ using ApiCatalogo.Repository.RepositoryGeneric;
 using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using ApiCatalogo.Services.ProdutoService;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -31,6 +32,9 @@ builder.Services.AddControllers(options =>
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication("Bearer").AddJwtBearer();
 
 
 string SqlServerConnection = builder.Configuration.GetConnectionString("Default");
@@ -76,9 +80,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

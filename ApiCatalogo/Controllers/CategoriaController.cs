@@ -11,6 +11,7 @@ using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using AutoMapper;
 using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -34,6 +35,7 @@ namespace ApiCatalogo.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<CategoriaDTO>> BuscarCategoria()
         {
             var categoria = await _categoriaService.BuscarTodos();
