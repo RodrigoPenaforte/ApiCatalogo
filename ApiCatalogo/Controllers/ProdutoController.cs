@@ -9,6 +9,7 @@ using ApiCatalogo.Models;
 using ApiCatalogo.Pagination;
 using ApiCatalogo.Services.ProdutoService;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ using Microsoft.Extensions.Logging;
 namespace ApiCatalogo.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ProdutoController : ControllerBase
     {
 
@@ -34,7 +35,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoDTO>>> BuscarProduto()
         {
@@ -50,6 +51,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
+        [Authorize]
         [HttpGet("paginados")]
         public async Task<ActionResult<PagedModel<ProdutoDTO>>> BuscarProdutosPaginados(int pagina = 1, int tamanhoPagina = 5)
         {
@@ -67,7 +69,7 @@ namespace ApiCatalogo.Controllers
         }
 
 
-
+        [Authorize]
         [HttpGet("{id}", Name = "ObterProduto")]
 
         public async Task<ActionResult<ProdutoDTO>> BuscarProdutoId(int id)
@@ -84,7 +86,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-
+        [Authorize]
         [HttpPost]
 
         public async Task<ActionResult<ProdutoOutputDTO>> AdicionarProduto(ProdutoInputDTO produtoDto)
@@ -98,8 +100,8 @@ namespace ApiCatalogo.Controllers
 
         }
 
+        [Authorize]
         [HttpPut]
-
         public async Task<ActionResult<ProdutoOutputDTO>> AtualizarProduto(ProdutoInputDTO produtoDto)
         {
             var produtoMapeado = _mapper.Map<Produto>(produtoDto);
@@ -112,6 +114,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
 
         public async Task<ActionResult<ProdutoDTO>> ExcluirProduto(int id)
