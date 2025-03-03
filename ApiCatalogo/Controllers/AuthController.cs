@@ -30,7 +30,6 @@ namespace ApiCatalogo.Controllers
             _configuration = configuration;
         }
 
-
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
@@ -77,13 +76,12 @@ namespace ApiCatalogo.Controllers
             return Unauthorized();
 
         }
-
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroModel model)
         {
 
-            var usuarioExiste = await _userManager.FindByEmailAsync(model.NomeUsuario!);
+            var usuarioExiste = await _userManager.FindByNameAsync(model.NomeUsuario!);
 
             if (usuarioExiste is not null)
             {
@@ -107,7 +105,6 @@ namespace ApiCatalogo.Controllers
             return Ok(new Response { Status = "Success", Mensagem = "Usuário criado com sucesso!" });
 
         }
-
         [HttpPost]
         [Route("refresh-token")]
 

@@ -1,24 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using ApiCatalogo.Context;
 using ApiCatalogo.DTOs.Categorias;
 using ApiCatalogo.Models;
 using ApiCatalogo.Pagination;
-using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using AutoMapper;
-using Azure.Core;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace ApiCatalogo.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class CategoriaController : ControllerBase
     {
@@ -35,14 +26,14 @@ namespace ApiCatalogo.Controllers
 
 
         [HttpGet]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<CategoriaDTO>> BuscarCategoria()
         {
             var categoria = await _categoriaService.BuscarTodos();
             return Ok(categoria);
         }
 
-
+        [Authorize]
         [HttpGet("CategoriaProduto")]
         public async Task<ActionResult<IEnumerable<CategoriaOutputDTO>>> BuscarCategoriaPorProduto(int id)
         {
@@ -55,6 +46,7 @@ namespace ApiCatalogo.Controllers
             return Ok(categoriaDto);
         }
 
+        [Authorize]
         [HttpGet("paginados")]
         public async Task<ActionResult<PagedModel<CategoriaDTO>>> BuscarCategoriasPaginados(int pagina = 1, int tamanhoPagina = 5)
         {
@@ -72,7 +64,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-
+        [Authorize]
         [HttpGet("{id:int:min(1)}", Name = "ObterCategoria")]
         public async Task<ActionResult<CategoriaDTO>> BuscarCategoriaPorId(int id)
         {
@@ -89,6 +81,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<CategoriaOutputDTO>> AdicionarCategoria(CategoriaInputDTO categoriaInputDto)
         {
@@ -104,6 +97,7 @@ namespace ApiCatalogo.Controllers
             return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar?.CategoriaId }, categoriaAdicionar);
         }
 
+        [Authorize]
         [HttpPut("id")]
         public async Task<ActionResult<CategoriaOutputDTO>> AtualizarCategoria(int id, CategoriaInputDTO categoriaInput)
         {
@@ -121,7 +115,7 @@ namespace ApiCatalogo.Controllers
 
             return Ok(categoriaOutPut);
         }
-
+        [Authorize]
         [HttpDelete("id")]
 
         public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
