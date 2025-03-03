@@ -1,3 +1,4 @@
+using System.Text;
 using ApiCatalogo.Context;
 using ApiCatalogo.Controllers;
 using ApiCatalogo.DTOs.Mapping;
@@ -5,6 +6,7 @@ using ApiCatalogo.Extensions;
 using ApiCatalogo.Filters;
 using ApiCatalogo.Logging;
 using ApiCatalogo.Models;
+using ApiCatalogo.Models.ApplicationUser;
 using ApiCatalogo.Repository;
 using ApiCatalogo.Repository.CategoriaRepository;
 using ApiCatalogo.Repository.ProdutoRepository;
@@ -12,9 +14,12 @@ using ApiCatalogo.Repository.RepositoryGeneric;
 using ApiCatalogo.Services;
 using ApiCatalogo.Services.CategoriaService;
 using ApiCatalogo.Services.ProdutoService;
+using ApiCatalogo.Services.TokenService;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,11 +33,41 @@ builder.Services.AddControllers(options =>
         opt.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
 
+var secretKey = builder.Configuration["JWT:SecretKey"]
+    ?? throw new ArgumentException("Invalid secret key!!");
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false; // Altere para true em produção
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero, // Remove tempo extra de tolerância na expiração
+        ValidAudience = builder.Configuration["JWT:ValidAudience"],
+        ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(secretKey))
+    };
+});
+
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication("Bearer").AddJwtBearer();
 
@@ -47,8 +82,10 @@ builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped(typeof(IRepositorioGenerico<>), typeof(RepositorioGenerico<>));
 
+builder.Services.AddScoped<ITokenService,TokenService>();
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<ProdutoService>();
+
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
