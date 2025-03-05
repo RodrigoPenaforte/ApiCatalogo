@@ -119,6 +119,7 @@ namespace ApiCatalogo.Controllers
         public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
         {
             var categoriaDeletado = await _categoriaService.DeletarCategoria(id);
+
             return _mapper.Map<CategoriaDTO>(categoriaDeletado);
         }
 

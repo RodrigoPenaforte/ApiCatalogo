@@ -100,7 +100,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("SuperAdmin")); // Agora qualquer usuário com a role "SuperAdmin" pode acessar
 
     options.AddPolicy("UserOnly", policy =>
-        policy.RequireRole("User"));
+        policy.RequireRole("User","SuperAdmin", "Admin"));
 
     options.AddPolicy("ExclusiveOnly", policy =>
         policy.RequireAssertion(context =>
