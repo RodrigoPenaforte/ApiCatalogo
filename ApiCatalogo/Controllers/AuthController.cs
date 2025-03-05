@@ -39,45 +39,47 @@ namespace ApiCatalogo.Controllers
 
             if (usuario is not null && await _userManager.CheckPasswordAsync(usuario, model.Senha!))
             {
-
+                // Obtendo as roles do usuário
                 var userRoles = await _userManager.GetRolesAsync(usuario);
 
-                var authClaims = new List<Claim>{
+                var authClaims = new List<Claim>
+                {
                     new Claim(ClaimTypes.Name, usuario.UserName!),
                     new Claim(ClaimTypes.Email, usuario.Email!),
+                    new Claim("id", usuario.UserName!), // Você ainda pode manter o ID como claim se necessário
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
-                foreach (var roles in userRoles)
+                // Adicionando as roles do usuário ao token
+                foreach (var role in userRoles)
                 {
-                    authClaims.Add(new Claim(ClaimTypes.Role, roles));
-
+                    authClaims.Add(new Claim(ClaimTypes.Role, role));
                 }
+
+                // Gerando o token
                 var token = _tokenService.GenerateAccessToken(authClaims);
                 var refreshToken = _tokenService.GenerateRefreshToken();
 
                 _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
 
                 usuario.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
-
                 usuario.RefreshToken = refreshToken;
 
                 await _userManager.UpdateAsync(usuario);
 
+                // Retornando o token
                 return Ok(new
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     RefreshToken = refreshToken,
                     Expiration = token.ValidTo,
-
                 });
-
             }
 
             return Unauthorized();
-
         }
 
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroModel model)
@@ -135,7 +137,7 @@ namespace ApiCatalogo.Controllers
         }
 
 
-
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpPost]
         [Route("refresh-token")]
 
@@ -181,7 +183,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "ExclusiveOnly")]
         [HttpPost]
         [Route("revogar/{nomeUsuario}")]
         public async Task<IActionResult> Revogar(string nomeUsuario)
@@ -220,6 +222,7 @@ namespace ApiCatalogo.Controllers
         }
 
         // Criação de roles:
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpPost]
         [Route("CriandoRoles")]
 
@@ -255,7 +258,7 @@ namespace ApiCatalogo.Controllers
             return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Mensagem = $"Role já existe" });
         }
 
-
+        [Authorize(Policy = "ExclusiveOnly")]
         [HttpPost]
         [Route("AdicionarUsuarioParaRole")]
 

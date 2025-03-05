@@ -90,6 +90,23 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    // Política para permitir acesso aos SuperAdmins
+    options.AddPolicy("SuperAdminOnly", policy =>
+        policy.RequireRole("SuperAdmin")); // Agora qualquer usuário com a role "SuperAdmin" pode acessar
+
+    options.AddPolicy("UserOnly", policy =>
+        policy.RequireRole("User"));
+
+    options.AddPolicy("ExclusiveOnly", policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole("SuperAdmin"))); // Usando a role em vez de uma claim específica
+});
+
 
 builder.Services.AddAuthorization();
 

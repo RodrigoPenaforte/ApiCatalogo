@@ -3,7 +3,6 @@ using ApiCatalogo.Models;
 using ApiCatalogo.Pagination;
 using ApiCatalogo.Services.CategoriaService;
 using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,14 +25,14 @@ namespace ApiCatalogo.Controllers
 
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(Policy = "UserOnly")]
         public async Task<ActionResult<CategoriaDTO>> BuscarCategoria()
         {
             var categoria = await _categoriaService.BuscarTodos();
             return Ok(categoria);
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet("CategoriaProduto")]
         public async Task<ActionResult<IEnumerable<CategoriaOutputDTO>>> BuscarCategoriaPorProduto(int id)
         {
@@ -46,7 +45,7 @@ namespace ApiCatalogo.Controllers
             return Ok(categoriaDto);
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet("paginados")]
         public async Task<ActionResult<PagedModel<CategoriaDTO>>> BuscarCategoriasPaginados(int pagina = 1, int tamanhoPagina = 5)
         {
@@ -64,7 +63,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet("{id:int:min(1)}", Name = "ObterCategoria")]
         public async Task<ActionResult<CategoriaDTO>> BuscarCategoriaPorId(int id)
         {
@@ -81,7 +80,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         public async Task<ActionResult<CategoriaOutputDTO>> AdicionarCategoria(CategoriaInputDTO categoriaInputDto)
         {
@@ -97,7 +96,7 @@ namespace ApiCatalogo.Controllers
             return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaAdicionar?.CategoriaId }, categoriaAdicionar);
         }
 
-        [Authorize]
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("id")]
         public async Task<ActionResult<CategoriaOutputDTO>> AtualizarCategoria(int id, CategoriaInputDTO categoriaInput)
         {
@@ -115,9 +114,8 @@ namespace ApiCatalogo.Controllers
 
             return Ok(categoriaOutPut);
         }
-        [Authorize]
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpDelete("id")]
-
         public async Task<ActionResult<CategoriaDTO>> DeletarCategoria(int id)
         {
             var categoriaDeletado = await _categoriaService.DeletarCategoria(id);
