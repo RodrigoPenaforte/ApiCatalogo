@@ -46,7 +46,7 @@ namespace ApiCatalogo.Controllers
                 {
                     new Claim(ClaimTypes.Name, usuario.UserName!),
                     new Claim(ClaimTypes.Email, usuario.Email!),
-                    new Claim("id", usuario.UserName!), // Você ainda pode manter o ID como claim se necessário
+                    new Claim("id", usuario.UserName!), 
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
