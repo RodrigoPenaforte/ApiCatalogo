@@ -20,14 +20,15 @@ namespace ApiCatalogo.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthController> _logger;
 
-
-        public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
+        public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration, ILogger<AuthController> logger)
         {
             _tokenService = tokenService;
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -38,54 +39,60 @@ namespace ApiCatalogo.Controllers
 
             if (usuario is not null && await _userManager.CheckPasswordAsync(usuario, model.Senha!))
             {
-
+                // Obtendo as roles do usuário
                 var userRoles = await _userManager.GetRolesAsync(usuario);
 
-                var authClaims = new List<Claim>{
+                var authClaims = new List<Claim>
+                {
                     new Claim(ClaimTypes.Name, usuario.UserName!),
                     new Claim(ClaimTypes.Email, usuario.Email!),
+                    new Claim("id", usuario.UserName!), 
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
-                foreach (var roles in userRoles)
+                // Adicionando as roles do usuário ao token
+                foreach (var role in userRoles)
                 {
-                    authClaims.Add(new Claim(ClaimTypes.Role, roles));
-
+                    authClaims.Add(new Claim(ClaimTypes.Role, role));
                 }
+
+                // Gerando o token
                 var token = _tokenService.GenerateAccessToken(authClaims);
                 var refreshToken = _tokenService.GenerateRefreshToken();
 
                 _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
 
                 usuario.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
-
                 usuario.RefreshToken = refreshToken;
 
                 await _userManager.UpdateAsync(usuario);
 
+                // Retornando o token
                 return Ok(new
                 {
                     Token = new JwtSecurityTokenHandler().WriteToken(token),
                     RefreshToken = refreshToken,
                     Expiration = token.ValidTo,
-
                 });
-
             }
 
             return Unauthorized();
-
         }
+
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroModel model)
         {
-
             var usuarioExiste = await _userManager.FindByNameAsync(model.NomeUsuario!);
 
             if (usuarioExiste is not null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Mensagem = "Usuário já existe!" });
+                return StatusCode(StatusCodes.Status400BadRequest, new Response
+                {
+                    Status = "Error",
+                    Mensagem = "Usuário já existe!"
+                });
             }
 
             ApplicationUser usuario = new()
@@ -99,12 +106,38 @@ namespace ApiCatalogo.Controllers
 
             if (!resultado.Succeeded)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Mensagem = "Usuário não foi criado!" });
+                var mensagensErro = new Dictionary<string, string>
+                {
+                    { "must have at least one uppercase", "A senha deve conter pelo menos uma letra maiúscula." },
+                    { "must have at least one non alphanumeric character", "A senha deve conter pelo menos um caractere especial (!, @, #, etc.)." },
+                    { "must have at least one digit", "A senha deve conter pelo menos um número." }
+                };
+
+                var erroEncontrado = resultado.Errors
+                    .Select(e => mensagensErro.FirstOrDefault(m => e.Description.Contains(m.Key)).Value)
+                    .FirstOrDefault(m => m != null);
+
+                if (erroEncontrado is not null)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response
+                    {
+                        Status = "Error",
+                        Mensagem = $"Usuário {usuario.UserName} não foi criado! {erroEncontrado}"
+                    });
+                }
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response
+                {
+                    Status = "Error",
+                    Mensagem = "Usuário não foi criado! Verifique os requisitos da senha."
+                });
             }
 
             return Ok(new Response { Status = "Success", Mensagem = "Usuário criado com sucesso!" });
-
         }
+
+
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpPost]
         [Route("refresh-token")]
 
@@ -150,7 +183,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "ExclusiveOnly")]
         [HttpPost]
         [Route("revogar/{nomeUsuario}")]
         public async Task<IActionResult> Revogar(string nomeUsuario)
@@ -167,7 +200,7 @@ namespace ApiCatalogo.Controllers
             bool isSelfRevoking = authenticatedUser.UserName == nomeUsuario;
 
             // Verifique se o usuário autenticado é um Super Admin
-            bool isSuperAdmin = await _userManager.IsInRoleAsync(authenticatedUser, "SuperAdmin");
+            bool isSuperAdmin = await _userManager.IsInRoleAsync(authenticatedUser, "Admin");
 
             // Permita a revogação apenas se o usuário estiver revogando seu próprio token ou se for um Super Admin
             if (!isSelfRevoking && !isSuperAdmin)
@@ -188,6 +221,76 @@ namespace ApiCatalogo.Controllers
             return Ok(new { Mensagem = "A sessão do usuário foi revogada com sucesso!" });
         }
 
+        // Criação de roles:
+        [Authorize(Policy = "SuperAdminOnly")]
+        [HttpPost]
+        [Route("CriandoRoles")]
 
+        public async Task<IActionResult> CriandoRoles(string roleNome)
+        {
+            var roleExiste = await _roleManager.RoleExistsAsync(roleNome);
+
+            if (!roleExiste)
+            {
+                var roleResultado = await _roleManager.CreateAsync(new IdentityRole(roleNome));
+                if (roleResultado.Succeeded)
+                {
+                    _logger.LogInformation(1, "Roles adicionado");
+                    return StatusCode(StatusCodes.Status200OK, new Response
+                    {
+                        Status = "Success",
+                        Mensagem = $"Role{roleNome} adicionado com sucesso"
+                    });
+
+                }
+                else
+                {
+                    _logger.LogInformation(2, "Error");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response
+                    {
+                        Status = "Error",
+                        Mensagem = $"Problema ao adicionar uma nova role"
+                    });
+
+                }
+            }
+
+            return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Mensagem = $"Role já existe" });
+        }
+
+        [Authorize(Policy = "ExclusiveOnly")]
+        [HttpPost]
+        [Route("AdicionarUsuarioParaRole")]
+
+        public async Task<IActionResult> AdicionarUsuarioParaRole(string email, string roleNome)
+        {
+
+            var usuario = await _userManager.FindByEmailAsync(email);
+
+            if (usuario is not null)
+            {
+                var resultado = await _userManager.AddToRoleAsync(usuario, roleNome);
+                if (resultado.Succeeded)
+                {
+                    _logger.LogInformation(1, $"{usuario.Email} adicionado o usuario {roleNome} para role  ");
+                    return StatusCode(StatusCodes.Status200OK, new Response
+                    {
+                        Status = "Success",
+                        Mensagem = $"Email do Usuário {usuario.Email} adicionado com sucesso a role para o {roleNome}"
+                    });
+                }
+                else
+                {
+                    _logger.LogInformation(1, $"Error: Não foi possível adicionar usuário ao {usuario.Email} para o {roleNome}");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response
+                    {
+                        Status = "Error",
+                        Mensagem = $"Error: Não foi possível adicionar usuário ao {usuario.Email} para o {roleNome}"
+                    });
+                }
+            }
+
+            return BadRequest(new { error = "Não foi possível criar um usuario Role" });
+        }
     }
 }

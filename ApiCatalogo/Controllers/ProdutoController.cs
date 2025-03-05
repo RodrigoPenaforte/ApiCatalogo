@@ -35,7 +35,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProdutoDTO>>> BuscarProduto()
         {
@@ -51,7 +51,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet("paginados")]
         public async Task<ActionResult<PagedModel<ProdutoDTO>>> BuscarProdutosPaginados(int pagina = 1, int tamanhoPagina = 5)
         {
@@ -69,7 +69,7 @@ namespace ApiCatalogo.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Policy = "UserOnly")]
         [HttpGet("{id}", Name = "ObterProduto")]
 
         public async Task<ActionResult<ProdutoDTO>> BuscarProdutoId(int id)
@@ -86,7 +86,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
 
         public async Task<ActionResult<ProdutoOutputDTO>> AdicionarProduto(ProdutoInputDTO produtoDto)
@@ -100,7 +100,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut]
         public async Task<ActionResult<ProdutoOutputDTO>> AtualizarProduto(ProdutoInputDTO produtoDto)
         {
@@ -114,7 +114,7 @@ namespace ApiCatalogo.Controllers
 
         }
 
-        [Authorize]
+        [Authorize(Policy = "SuperAdminOnly")]
         [HttpDelete("{id}")]
 
         public async Task<ActionResult<ProdutoDTO>> ExcluirProduto(int id)
